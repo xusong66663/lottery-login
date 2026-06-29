@@ -18,7 +18,7 @@ app.use(cors({
 }));
 
 // ---------- 数据库连接（硬编码正确连接串） ----------
-const MONGO_URI = 'mongodb+srv://wangyuan8298_db_user:yyqLMYEX2H1c8Fld@cluster0.wynlgt.s.mongodb.net/?appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI;
 const opts = {
   serverSelectionTimeoutMS: 5000,
   connectTimeoutMS: 10000,
