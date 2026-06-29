@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>🎯 预测系统B · 高命中预测</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 20% 20%, #0b5e4a, #064e3b);
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans SC', system-ui, sans-serif;
+            min-height: 100vh; padding: 0.5rem;
+            display: flex; justify-content: center; color: #d1fae5;
+        }
+        .app { max-width: 600px; width: 100%; display: flex; flex-direction: column; gap: 0.8rem; }
+        .top-bar {
+            display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+            background: rgba(6,78,59,0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(110,231,183,0.25); border-radius: 1.5rem;
+            padding: 0.8rem; box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+        }
+        .top-row {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 8px;
+        }
+        .user-area {
+            display: flex; align-items: center; gap: 8px;
+        }
+        #userInfo { font-size: 0.8rem; color: #6ee7b7; }
+        .btn-logout {
+            background: rgba(255,255,255,0.12); color: #d1fae5;
+            border: 1px solid rgba(255,255,255,0.2); padding: 4px 14px;
+            border-radius: 30px; font-size: 0.75rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.25); }
+        .btn-switch {
+            background: rgba(110,231,183,0.2); color: #6ee7b7;
+            border: 1px solid #6ee7b7; padding: 4px 14px;
+            border-radius: 30px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; text-decoration: none;
+        }
+        .btn-switch:hover { background: rgba(110,231,183,0.35); }
+        .live-clock {
+            font-size: 1.2rem; font-weight: 700; letter-spacing: 1px;
+            background: linear-gradient(to right, #6ee7b7, #34d399);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            text-shadow: 0 0 15px rgba(52,211,153,0.4);
+        }
+        .latest-draw-box {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: #0f2a20; border-radius: 2rem; padding: 0.3rem 1rem; border: 1px solid #6ee7b766;
+        }
+        .latest-number {
+            font-size: 1.5rem; font-weight: 800; color: #6ee7b7; letter-spacing: 3px;
+            text-shadow: 0 0 10px #6ee7b7; background: #0a3d2e; padding: 0.2rem 1rem; border-radius: 1.5rem;
+        }
+        .predict-badge {
+            background: #059669; color: white; padding: 0.3rem 1rem; border-radius: 2rem;
+            font-weight: 700; font-size: 0.85rem; box-shadow: 0 0 12px #059669aa;
+        }
+        .card {
+            background: rgba(6,78,59,0.8); backdrop-filter: blur(18px);
+            border: 1px solid rgba(110,231,183,0.12); border-radius: 1.2rem;
+            padding: 0.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        label { display: block; font-weight: 600; margin-bottom: 0.1rem; color: #a7f3d0; font-size: 0.8rem; }
+        textarea, input, select {
+            width: 100%; padding: 0.6rem 0.8rem; background: #0a2a1e; border: 1px solid #1a5a44;
+            border-radius: 0.8rem; color: #d1fae5; font-size: 0.9rem; font-family: 'Consolas', monospace;
+            outline: none; transition: 0.2s;
+        }
+        textarea { resize: vertical; }
+        textarea:focus, input:focus, select:focus { border-color: #34d399; box-shadow: 0 0 12px rgba(52,211,153,0.4); }
+        .btn {
+            background: #1a5a44; border: none; padding: 0.7rem 1.2rem; border-radius: 2rem;
+            font-weight: 700; color: #fff; cursor: pointer; transition: 0.25s;
+            font-size: 0.9rem; white-space: nowrap; text-align: center;
+        }
+        .btn-primary { background: linear-gradient(135deg, #34d399, #059669); box-shadow: 0 5px 15px #05966955; color: #064e3b; }
+        .btn-primary:hover { filter: brightness(1.15); }
+        .btn-secondary { background: #1a5a44; }
+        .btn-secondary:hover { background: #2a7a5e; }
+        .btn-block { display: block; width: 100%; }
+        .flex-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+        .flex-col { display: flex; flex-direction: column; gap: 0.5rem; }
+        .result-box {
+            background: #0a2a1e; border-radius: 1rem; padding: 0.6rem; margin-top: 0.5rem; border: 1px solid #6ee7b733;
+        }
+        .result-title { font-weight: 700; color: #6ee7b7; font-size: 0.9rem; margin-bottom: 0.3rem; }
+        .number-grid { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+        .badge {
+            background: #1a4a3a; padding: 0.3rem 0.7rem; border-radius: 2rem; font-weight: 700;
+            color: #6ee7b7; border: 1px solid #6ee7b740; font-size: 0.85rem;
+        }
+        .badge-gold {
+            background: linear-gradient(135deg, #34d399, #059669); color: #064e3b;
+            font-size: 1.2rem; padding: 0.4rem 1.5rem;
+            border: 2px solid #6ee7b7; box-shadow: 0 0 20px #34d399; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 12px #34d399; }
+            50% { box-shadow: 0 0 25px #059669, 0 0 40px #34d399; }
+            100% { box-shadow: 0 0 12px #34d399; }
+        }
+        .strong-rec { background: #0f3a2a; border: 2px solid #34d399; border-radius: 1.2rem; padding: 0.5rem; margin-bottom: 0.5rem; text-align: center; }
+        .dadi-text { font-family: 'Consolas', monospace; word-break: break-all; color: #a7f3d0; max-height: 200px; overflow-y: auto; line-height: 1.6; font-size: 0.8rem; }
+        .tab-btn {
+            padding: 0.5rem 1.5rem; border-radius: 2rem; background: #1a3a2e; color: #a7f3d0;
+            border: 1px solid #1a5a44; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem;
+        }
+        .tab-btn.active { background: #059669; color: #064e3b; border-color: #34d399; box-shadow: 0 0 10px #059669; }
+        .filter-check { display: flex; align-items: center; gap: 0.2rem; font-size: 0.8rem; white-space: nowrap; color: #a7f3d0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.3rem; font-size: 0.75rem; }
+        .stat-item { text-align: center; background: #0f3a2a; padding: 0.3rem; border-radius: 0.8rem; color: #a7f3d0; }
+        .stat-val { font-size: 0.85rem; font-weight: 700; color: #6ee7b7; }
+        hr { border-color: #1a5a44; margin: 0.5rem 0; }
+        .nav-links { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .app-title { font-weight: 700; font-size: 1.1rem; color: #6ee7b7; }
+    </style>
+</head>
+<body>
+<div class="app" id="mainApp">
+    <!-- 顶部栏 -->
+    <div class="top-bar">
+        <div class="top-row">
+            <span class="app-title">🎯 预测系统B</span>
+            <div class="user-area">
+                <span id="userInfo"></span>
+                <button class="btn-logout" onclick="logout()">退出</button>
+                <a href="index.html" class="btn-switch">→ 系统A</a>
+            </div>
+        </div>
+        <div class="live-clock" id="liveClock">--:--:--</div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="tab-btn active" id="tab3D">🎰 福彩3D</button>
+            <button class="tab-btn" id="tabP3">🎲 排列三</button>
+        </div>
+        <div class="latest-draw-box">
+            <span style="color:#a7f3d0; font-size:0.8rem;">📌 最新开奖</span>
+            <span class="latest-number" id="latestDrawDisplay">---</span>
+        </div>
+        <div class="predict-badge" id="predictIssue">🔮 预测期号：----</div>
+    </div>
+
+    <!-- 数据管理 -->
+    <div class="card">
+        <h2 style="color:#6ee7b7; font-size:0.95rem; margin-bottom:0.3rem;">📋 <span id="dataLabel">福彩3D</span> 历史数据</h2>
+        <textarea id="historyData" placeholder="粘贴历史数据，每行：期号 号码&#10;例：2024005 839&#10;2024004 672" style="height:80px;"></textarea>
+        <div class="flex-row" style="margin-top:0.5rem;">
+            <button class="btn btn-primary" id="loadDataBtn" style="flex:1;">📥 加载</button>
+            <button class="btn btn-secondary" id="clearDataBtn" style="flex:1;">🗑️ 清空</button>
+        </div>
+        <div class="flex-row" style="margin-top:0.5rem;">
+            <input type="text" id="manualDrawInput" placeholder="手动输入开奖号" maxlength="3" style="flex:1;">
+            <button class="btn btn-primary" id="updateDrawBtn" style="flex:1;">🔄 更新为最新</button>
+        </div>
+    </div>
+
+    <!-- 双飞 + 胆码 -->
+    <div class="card">
+        <h2 style="color:#6ee7b7; font-size:0.95rem;">🎯 双飞 & 胆码推荐</h2>
+        <div class="flex-row" style="justify-content:space-between; font-size:0.85rem; color:#a7f3d0;">
+            <div>独胆:<strong id="sysDan1" style="color:#6ee7b7;">--</strong></div>
+            <div>双胆:<strong id="sysDan2" style="color:#6ee7b7;">--</strong></div>
+            <div>三胆:<strong id="sysDan3" style="color:#6ee7b7;">--</strong></div>
+            <div>四胆:<strong id="sysDan4" style="color:#6ee7b7;">--</strong></div>
+        </div>
+        <input type="text" id="danInput" placeholder="手动输入胆码 (如5或38)" maxlength="2" style="margin-top:0.3rem;">
+        <div class="flex-row" style="margin-top:0.3rem;">
+            <button class="btn btn-primary" id="generateShuangfeiBtn" style="flex:1;">✨ 生成双飞</button>
+            <button class="btn btn-secondary" id="autoShuangfeiBtn" style="flex:1;">🤖 系统推荐</button>
+        </div>
+        <div class="result-box">
+            <div class="result-title">🏆 最强烈推荐双飞</div>
+            <div class="strong-rec"><span class="badge badge-gold" id="topShuangfei">--</span></div>
+            <div class="result-title">🔥 其他推荐双飞</div>
+            <div class="number-grid" id="shuangfeiList"></div>
+        </div>
+        <div class="result-box">
+            <div class="result-title">🏅 精选十注 (直选)</div>
+            <div class="number-grid" id="selectedTen"></div>
+        </div>
+    </div>
+
+    <!-- 多指标预测 -->
+    <div class="card">
+        <h2 style="color:#6ee7b7; font-size:0.95rem;">📊 多指标智能预测</h2>
+        <div class="stats-grid">
+            <div class="stat-item"><div>三差值</div><div class="stat-val" id="predSancha">--</div></div>
+            <div class="stat-item"><div>位积和</div><div class="stat-val" id="predWeiji">--</div></div>
+            <div class="stat-item"><div>反位积和</div><div class="stat-val" id="predFanwei">--</div></div>
+            <div class="stat-item"><div>凹凸形态</div><div class="stat-val" id="predAotu">--</div></div>
+            <div class="stat-item"><div>最小值</div><div class="stat-val" id="predMin">--</div></div>
+            <div class="stat-item"><div>中间值</div><div class="stat-val" id="predMid">--</div></div>
+            <div class="stat-item"><div>最大值</div><div class="stat-val" id="predMax">--</div></div>
+            <div class="stat-item"><div>跨度</div><div class="stat-val" id="predSpan">--</div></div>
+        </div>
+        <div class="result-box">
+            <div class="result-title">🎯 七码推荐 (出23: ≥2位命中)</div>
+            <div id="code7" style="font-size:1.1rem; color:#6ee7b7; word-break:break-all;">--</div>
+        </div>
+        <div class="result-box">
+            <div class="result-title">🎯 八码推荐 (出23)</div>
+            <div id="code8" style="font-size:1.1rem; color:#6ee7b7; word-break:break-all;">--</div>
+        </div>
+        <div class="result-box">
+            <div class="result-title">📍 定位八码 (百/十/个)</div>
+            <div style="font-size:0.9rem; color:#6ee7b7;">百: <span id="posB">--</span></div>
+            <div style="font-size:0.9rem; color:#6ee7b7;">十: <span id="posS">--</span></div>
+            <div style="font-size:0.9rem; color:#6ee7b7;">个: <span id="posG">--</span></div>
+        </div>
+    </div>
+
+    <!-- 大底生成 -->
+    <div class="card">
+        <h2 style="color:#6ee7b7; font-size:0.95rem;">📊 高命中大底生成器</h2>
+        <div class="flex-row" style="justify-content:space-between;">
+            <label style="color:#a7f3d0;">注数:</label>
+            <select id="dadiRange" style="width:auto; background:#0a2a1e; color:#d1fae5; border-color:#1a5a44;">
+                <option value="100">100注</option><option value="200" selected>200注</option>
+                <option value="300">300注</option><option value="400">400注</option>
+                <option value="500">500注</option><option value="600">600注</option>
+                <option value="700">700注</option><option value="800">800注</option>
+            </select>
+        </div>
+        <div class="flex-row" style="margin-top:0.3rem; flex-wrap:wrap;">
+            <label class="filter-check"><input type="checkbox" id="useCode7" checked> 七码出23</label>
+            <label class="filter-check"><input type="checkbox" id="useCode8" checked> 八码出23</label>
+            <label class="filter-check"><input type="checkbox" id="usePosCode"> 定位≥2位</label>
+        </div>
+        <div class="flex-row" style="flex-wrap:wrap;">
+            <label class="filter-check"><input type="checkbox" id="useAotu"> 凹凸形态</label>
+            <label class="filter-check"><input type="checkbox" id="useSancha"> 三差值</label>
+        </div>
+        <div class="flex-row" style="margin-top:0.5rem;">
+            <button class="btn btn-primary" id="generateDadiBtn" style="flex:1;">🎲 生成大底</button>
+            <button class="btn btn-secondary" id="systemDadiBtn" style="flex:1;">🧠 系统大底</button>
+        </div>
+        <div class="result-box">
+            <div class="result-title">📋 大底号码 (从小到大排序)</div>
+            <div class="dadi-text" id="dadiDisplay">——</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== 登录验证 ====================
+const API_BASE = 'https://lottery-login.vercel.app'; // 你的后端域名
+
+// 页面加载时检查登录状态
+(async function checkAuth() {
+    const userInfo = document.getElementById('userInfo');
+    try {
+        const res = await fetch(`${API_BASE}/api/me`, {
+            credentials: 'include'
+        });
+        if (res.ok) {
+            const data = await res.json();
+            userInfo.textContent = '👋 ' + data.username;
+        } else {
+            window.location.href = 'login.html';
+        }
+    } catch (e) {
+        window.location.href = 'login.html';
+    }
+})();
+
+// 退出登录
+async function logout() {
+    await fetch(`${API_BASE}/api/logout`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    window.location.href = 'login.html';
+}
+
+// ==================== 原有彩票逻辑 ====================
+(function() {
+    let currentGame = '3D';
+    const dataStore = { '3D': [], 'P3': [] };
+    let historyData = [];
+    let cachedPredictions = {};
+
+    const $ = id => document.getElementById(id);
+    const liveClockEl = $('liveClock'), latestDrawDisplay = $('latestDrawDisplay'), predictIssueEl = $('predictIssue');
+    const historyTextarea = $('historyData'), danInput = $('danInput'), dadiRangeSelect = $('dadiRange');
+
+    function updateClock() {
+        const now = new Date();
+        liveClockEl.textContent = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    function switchGame(game) {
+        currentGame = game;
+        dataStore[currentGame] = dataStore[currentGame] || [];
+        historyData = dataStore[currentGame];
+        $('tab3D').classList.toggle('active', game==='3D');
+        $('tabP3').classList.toggle('active', game==='P3');
+        $('dataLabel').textContent = game==='3D'?'福彩3D':'排列三';
+        historyTextarea.value = historyData.map(d=>`${d.issue} ${d.digits.join('')}`).join('\n');
+        loadDataToUI();
+        clearResults();
+        if(historyData.length>=10) refreshAllPredictions();
+    }
+    $('tab3D').addEventListener('click', ()=>switchGame('3D'));
+    $('tabP3').addEventListener('click', ()=>switchGame('P3'));
+
+    function parseHistory(text) {
+        const lines = text.trim().split(/\r?\n/), result = [];
+        for(let line of lines) {
+            line=line.trim(); if(!line) continue;
+            const parts=line.split(/\s+/); if(parts.length<2) continue;
+            const number=parts[1].replace(/\D/g,''); if(number.length!==3) continue;
+            const digits=number.split('').map(Number);
+            if(digits.some(d=>isNaN(d)||d<0||d>9)) continue;
+            result.push({issue:parts[0], digits});
+        }
+        return result;
+    }
+    function generateNextIssue(lastIssue) {
+        if(!lastIssue) return '2024001';
+        const numPart=lastIssue.match(/\d+/); if(!numPart) return 'N001';
+        const num=parseInt(numPart[0],10), prefix=lastIssue.substring(0,lastIssue.indexOf(numPart[0]));
+        return prefix+String(num+1).padStart(numPart[0].length,'0');
+    }
+    function loadDataToUI() {
+        if(historyData.length===0){ latestDrawDisplay.textContent='---'; predictIssueEl.textContent='🔮 ----'; return; }
+        const latest=historyData[0];
+        latestDrawDisplay.textContent=latest.digits.join('');
+        predictIssueEl.textContent='🔮 '+generateNextIssue(latest.issue);
+    }
+    function persistAndRefreshUI() {
+        dataStore[currentGame]=historyData;
+        try{ localStorage.setItem('lottery_v5_'+currentGame, JSON.stringify(historyData.map(d=>({issue:d.issue,digits:d.digits})))) }catch(e){}
+        loadDataToUI();
+        historyTextarea.value=historyData.map(d=>`${d.issue} ${d.digits.join('')}`).join('\n');
+    }
+    function loadFromStorage() {
+        try{
+            const raw3D=localStorage.getItem('lottery_v5_3D'), rawP3=localStorage.getItem('lottery_v5_P3');
+            if(raw3D) dataStore['3D']=JSON.parse(raw3D).filter(d=>d.issue&&d.digits&&d.digits.length===3);
+            if(rawP3) dataStore['P3']=JSON.parse(rawP3).filter(d=>d.issue&&d.digits&&d.digits.length===3);
+        }catch(e){}
+        if(dataStore['3D'].length===0) dataStore['3D']=parseHistory('2024005 839\n2024004 672\n2024003 415\n2024002 097\n2024001 123');
+    }
+
+    function clearResults() {
+        ['topShuangfei','shuangfeiList','selectedTen','dadiDisplay','sysDan1','sysDan2','sysDan3','sysDan4',
+         'predSancha','predWeiji','predFanwei','predAotu','predMin','predMid','predMax','predSpan',
+         'code7','code8','posB','posS','posG'].forEach(id=>{ const el=$(id); if(el) el.textContent='--'; });
+        $('shuangfeiList').innerHTML=''; $('selectedTen').innerHTML='';
+    }
+
+    function getAllPairs(){ const p=[]; for(let i=0;i<10;i++) for(let j=i+1;j<10;j++) p.push(`${i}${j}`); return p; }
+    function getRecentStats(n=30){
+        if(historyData.length===0) return null;
+        const recent=historyData.slice(0,Math.min(n,historyData.length));
+        const freq=Array(10).fill(0), pairFreq={};
+        recent.forEach(e=>{ e.digits.forEach(d=>freq[d]++);
+            for(let i=0;i<3;i++) for(let j=i+1;j<3;j++){ let a=e.digits[i],b=e.digits[j]; if(a>b)[a,b]=[b,a]; pairFreq[`${a}${b}`]=(pairFreq[`${a}${b}`]||0)+1; }
+        });
+        return {freq, pairFreq, total:recent.length};
+    }
+    function getPairOmission(){
+        if(historyData.length===0) return {};
+        const omission={}; getAllPairs().forEach(p=>omission[p]=0);
+        for(let i=0;i<historyData.length;i++){
+            const d=historyData[i].digits, cur=new Set();
+            for(let x=0;x<3;x++) for(let y=x+1;y<3;y++){ let a=d[x],b=d[y]; if(a>b)[a,b]=[b,a]; cur.add(`${a}${b}`); }
+            for(let p of getAllPairs()) omission[p]=cur.has(p)?0:omission[p]+1;
+        }
+        return omission;
+    }
+
+    function extractFeatureWindow(startIdx,windowSize=5){
+        if(historyData.length<startIdx+windowSize) return null;
+        const wd=historyData.slice(startIdx,startIdx+windowSize), feats=[];
+        wd.forEach(e=>{
+            const d=e.digits, sum=d[0]+d[1]+d[2], span=Math.max(...d)-Math.min(...d);
+            feats.push([d[0]/9,d[1]/9,d[2]/9, sum/27,sum%10/9,span/9, d.map(x=>x%3).join('')/22, d.filter(x=>x%2).length/3, d.filter(x=>x>=5).length/3]);
+        });
+        return feats.flat();
+    }
+    function similarityDistance(v1,v2){ if(!v1||!v2||v1.length!==v2.length) return Infinity; let s=0; for(let i=0;i<v1.length;i++){ let d=v1[i]-v2[i]; if(i%9<4) d*=1.5; s+=d*d; } return Math.sqrt(s); }
+    function findSimilarPeriods(ws=5,topN=4){
+        if(historyData.length<ws+1) return [];
+        const cur=extractFeatureWindow(0,ws); if(!cur) return [];
+        const cands=[];
+        for(let i=1;i<=historyData.length-ws-1;i++){ const h=extractFeatureWindow(i,ws); if(h) cands.push({startIdx:i,dist:similarityDistance(cur,h)}); }
+        return cands.sort((a,b)=>a.dist-b.dist).slice(0,topN);
+    }
+    function getSimilarNextInfo(topN=4){
+        const sim=findSimilarPeriods(5,topN); const nums=new Set(), andVals=[], spans=[], aotus=[], sanchas=[], weijis=[], fanweis=[], mins=[], mids=[], maxs=[];
+        sim.forEach(s=>{
+            const ne=historyData[s.startIdx-1]; if(!ne) return;
+            const d=ne.digits; nums.add(d.join(''));
+            andVals.push(d[0]+d[1]+d[2]); spans.push(Math.max(...d)-Math.min(...d));
+            const aotu=getAotuType(d); aotus.push(aotu);
+            sanchas.push([Math.abs(d[0]-d[1]), Math.abs(d[0]-d[2]), Math.abs(d[1]-d[2])].sort((a,b)=>a-b).join(''));
+            weijis.push(d[0]*1+d[1]*2+d[2]*3); fanweis.push(d[0]*3+d[1]*2+d[2]*1);
+            const sorted=[...d].sort((a,b)=>a-b); mins.push(sorted[0]); mids.push(sorted[1]); maxs.push(sorted[2]);
+        });
+        return { numbers:Array.from(nums), andMin:andVals.length?Math.min(...andVals):null, andMax:andVals.length?Math.max(...andVals):null,
+                 spanMin:spans.length?Math.min(...spans):null, spanMax:spans.length?Math.max(...spans):null,
+                 aotu:mode(aotus), sancha:mode(sanchas), weiji:mode(weijis), fanwei:mode(fanweis),
+                 min:mode(mins), mid:mode(mids), max:mode(maxs) };
+    }
+    function mode(arr){ if(!arr.length) return null; const m=new Map(); arr.forEach(v=>m.set(v,(m.get(v)||0)+1)); return [...m.entries()].sort((a,b)=>b[1]-a[1])[0][0]; }
+    function getAotuType(d){
+        const [b,s,g]=d;
+        if(b===s||s===g||b===g) return '等号';
+        if(b<s&&s<g) return '上升';
+        if(b>s&&s>g) return '下降';
+        if(b<s&&s>g) return '单峰';
+        return '单谷';
+    }
+
+    function scoreAllPairs(userDan=null){
+        if(historyData.length<10) return [];
+        const stats=getRecentStats(30); if(!stats) return [];
+        const {freq,pairFreq}=stats, omission=getPairOmission(), maxOm=Math.max(...Object.values(omission),1), allPairs=getAllPairs();
+        const sortedDigits=freq.map((c,i)=>({digit:i,cnt:c})).sort((a,b)=>b.cnt-a.cnt);
+        const hotSet=new Set(sortedDigits.slice(0,4).map(d=>d.digit)), coldSet=new Set(sortedDigits.slice(-3).map(d=>d.digit));
+        const last=historyData[0].digits;
+        const lastPairs=new Set(); for(let i=0;i<3;i++) for(let j=i+1;j<3;j++){ let a=last[i],b=last[j]; if(a>b)[a,b]=[b,a]; lastPairs.add(`${a}${b}`); }
+        const mirror={0:5,1:6,2:7,3:8,4:9,5:0,6:1,7:2,8:3,9:4};
+        const mirrorSet=new Set(last.map(d=>mirror[d])), mirrorPairs=new Set();
+        const mirArr=[...mirrorSet]; for(let i=0;i<mirArr.length;i++) for(let j=i+1;j<mirArr.length;j++){ let a=mirArr[i],b=mirArr[j]; if(a>b)[a,b]=[b,a]; mirrorPairs.add(`${a}${b}`); }
+        const scores={};
+        allPairs.forEach(p=>{ let score=0; const a=+p[0],b=+p[1];
+            if(hotSet.has(a)&&hotSet.has(b)) score+=0.25;
+            if((hotSet.has(a)&&coldSet.has(b))||(hotSet.has(b)&&coldSet.has(a))) score+=0.20;
+            if((omission[p]||0)>=maxOm*0.75) score+=0.25;
+            if(mirrorPairs.has(p)) score+=0.10;
+            if(lastPairs.has(p)) score+=0.10;
+            scores[p]=score;
+        });
+        let candidates=allPairs;
+        if(userDan&&userDan.length>0){ const danDigits=userDan.split('').map(Number).filter(d=>!isNaN(d));
+            if(danDigits.length>0) candidates=allPairs.filter(p=>{ const a=+p[0],b=+p[1]; return danDigits.some(d=>d===a||d===b); }); }
+        return candidates.map(p=>({pair:p,score:scores[p]||0})).sort((a,b)=>b.score-a.score).slice(0,5).map(i=>i.pair);
+    }
+    function generateTenSelected(pairs){ const ns=new Set(); pairs.forEach(p=>{ const a=+p[0],b=+p[1]; for(let t=0;t<10;t++){ [[a,b,t],[a,t,b],[b,a,t],[b,t,a],[t,a,b],[t,b,a]].forEach(x=>ns.add(x.join(''))); } }); return [...ns].sort().slice(0,10); }
+    function displayShuangfei(pairs){ if(!pairs||pairs.length===0) return; $('topShuangfei').textContent=pairs[0]; $('shuangfeiList').innerHTML=pairs.slice(1).map(p=>`<span class="badge">${p}</span>`).join('');
+        const ten=generateTenSelected(pairs); $('selectedTen').innerHTML=ten.map(n=>`<span class="badge">${n}</span>`).join(''); }
+
+    function recommendDans(){
+        if(historyData.length<5) return {d1:null,d2:null,d3:null,d4:null};
+        const stats=getRecentStats(30), omission=getPairOmission(), freq=stats.freq, scores=Array(10).fill(0);
+        const maxOm=Math.max(...Object.values(omission),1);
+        for(let i=0;i<10;i++) scores[i]=freq[i]*0.6+(1-((omission[`${i}${i}`]||0)/maxOm))*0.4;
+        const sorted=scores.map((s,idx)=>({digit:idx,score:s})).sort((a,b)=>b.score-a.score);
+        return {d1:sorted[0]?.digit, d2:sorted.slice(0,2).map(d=>d.digit).join(','), d3:sorted.slice(0,3).map(d=>d.digit).join(','), d4:sorted.slice(0,4).map(d=>d.digit).join(',')};
+    }
+    function displaySysDans(){ const d=recommendDans(); ['sysDan1','sysDan2','sysDan3','sysDan4'].forEach((id,i)=>$(id).textContent=[d.d1,d.d2,d.d3,d.d4][i]??'--'); }
+
+    function recommendCode7or8(len=7){
+        if(historyData.length<10) return '';
+        const stats=getRecentStats(30); const freq=stats.freq;
+        const sim=getSimilarNextInfo(4); const simDigits=new Set();
+        if(sim.numbers.length>0) sim.numbers.forEach(n=>n.split('').forEach(d=>simDigits.add(+d)));
+        const scores=Array(10).fill(0);
+        for(let i=0;i<10;i++) scores[i]=freq[i]*0.5+(simDigits.has(i)?3:0);
+        return scores.map((s,i)=>({digit:i,score:s})).sort((a,b)=>b.score-a.score).slice(0,len).map(d=>d.digit).sort((a,b)=>a-b).join('');
+    }
+    function recommendPosCode(posIdx){
+        if(historyData.length<10) return '';
+        const posFreq=Array(10).fill(0);
+        historyData.slice(0,30).forEach(e=>posFreq[e.digits[posIdx]]++);
+        const sim=getSimilarNextInfo(4); const simDigits=new Set();
+        sim.numbers.forEach(n=>simDigits.add(+n[posIdx]||0));
+        const scores=Array(10).fill(0);
+        for(let i=0;i<10;i++) scores[i]=posFreq[i]*0.5+(simDigits.has(i)?3:0);
+        return scores.map((s,i)=>({digit:i,score:s})).sort((a,b)=>b.score-a.score).slice(0,8).map(d=>d.digit).sort((a,b)=>a-b).join('');
+    }
+
+    function predictIndicators(){
+        if(historyData.length<10) return {};
+        const sim=getSimilarNextInfo(4);
+        const sums=historyData.slice(0,20).map(e=>e.digits[0]+e.digits[1]+e.digits[2]);
+        const mean=sums.reduce((a,b)=>a+b,0)/sums.length;
+        const std=Math.sqrt(sums.reduce((a,b)=>a+(b-mean)**2,0)/sums.length);
+        const weijis=historyData.slice(0,20).map(e=>e.digits[0]*1+e.digits[1]*2+e.digits[2]*3);
+        const wmean=weijis.reduce((a,b)=>a+b,0)/weijis.length;
+        const wstd=Math.sqrt(weijis.reduce((a,b)=>a+(b-wmean)**2,0)/weijis.length);
+        const fanweis=historyData.slice(0,20).map(e=>e.digits[0]*3+e.digits[1]*2+e.digits[2]*1);
+        const fmean=fanweis.reduce((a,b)=>a+b,0)/fanweis.length;
+        const fstd=Math.sqrt(fanweis.reduce((a,b)=>a+(b-fmean)**2,0)/fanweis.length);
+        const spans=historyData.slice(0,20).map(e=>Math.max(...e.digits)-Math.min(...e.digits));
+        const smean=spans.reduce((a,b)=>a+b,0)/spans.length;
+        const sstd=Math.sqrt(spans.reduce((a,b)=>a+(b-smean)**2,0)/spans.length);
+
+        return {
+            sancha: sim.sancha||'--',
+            weiji: `${Math.max(0,Math.floor(wmean-wstd))}-${Math.min(90,Math.ceil(wmean+wstd))}`,
+            fanwei: `${Math.max(0,Math.floor(fmean-fstd))}-${Math.min(90,Math.ceil(fmean+fstd))}`,
+            aotu: sim.aotu||getAotuType(historyData[0].digits),
+            min: sim.min??'--', mid: sim.mid??'--', max: sim.max??'--',
+            span: `${Math.max(0,Math.floor(smean-sstd))}-${Math.min(9,Math.ceil(smean+sstd))}`
+        };
+    }
+    function displayPredictions(){
+        const pred=predictIndicators(); cachedPredictions=pred;
+        ['predSancha','predWeiji','predFanwei','predAotu','predMin','predMid','predMax','predSpan'].forEach(id=>$(id).textContent=pred[id.replace('pred','').toLowerCase()]??'--');
+        $('code7').textContent=recommendCode7or8(7);
+        $('code8').textContent=recommendCode7or8(8);
+        $('posB').textContent=recommendPosCode(0);
+        $('posS').textContent=recommendPosCode(1);
+        $('posG').textContent=recommendPosCode(2);
+    }
+    function refreshAllPredictions(){
+        displaySysDans();
+        displayPredictions();
+    }
+
+    function generateDadi(pairs, target){
+        let allNums=new Set();
+        pairs.forEach(p=>{ const a=+p[0],b=+p[1]; for(let t=0;t<10;t++){ [[a,b,t],[a,t,b],[b,a,t],[b,t,a],[t,a,b],[t,b,a]].forEach(perm=>allNums.add(perm.join(''))); } });
+        let base=[...allNums].sort(), filtered=new Set(base);
+
+        if(historyData.length>=10){
+            const recent=historyData.slice(0,30);
+            const sums=recent.map(e=>e.digits[0]+e.digits[1]+e.digits[2]);
+            const mean=sums.reduce((a,b)=>a+b)/sums.length, std=Math.sqrt(sums.reduce((a,b)=>a+(b-mean)**2)/sums.length);
+            const andMin=Math.max(0,Math.floor(mean-1.2*std)), andMax=Math.min(27,Math.ceil(mean+1.2*std));
+            filtered=new Set([...filtered].filter(num=>{
+                const d=num.split('').map(Number), sum=d[0]+d[1]+d[2]; if(sum<andMin||sum>andMax) return false;
+                const span=Math.max(...d)-Math.min(...d); if((span===0||span===9)&&recent.filter(e=>Math.max(...e.digits)-Math.min(...e.digits)===span).length>0) return false;
+                return true;
+            }));
+        }
+
+        if($('useCode7').checked){
+            const code7=$('code7').textContent; if(code7&&code7!=='--'){
+                filtered=new Set([...filtered].filter(num=>{
+                    const hit=num.split('').filter(d=>code7.includes(d)).length;
+                    return hit>=2;
+                }));
+            }
+        }
+        if($('useCode8').checked){
+            const code8=$('code8').textContent; if(code8&&code8!=='--'){
+                filtered=new Set([...filtered].filter(num=>{
+                    const hit=num.split('').filter(d=>code8.includes(d)).length;
+                    return hit>=2;
+                }));
+            }
+        }
+        if($('usePosCode').checked){
+            const posB=$('posB').textContent, posS=$('posS').textContent, posG=$('posG').textContent;
+            if(posB&&posB!=='--'&&posS&&posS!=='--'&&posG&&posG!=='--'){
+                filtered=new Set([...filtered].filter(num=>{
+                    const hits=[posB.includes(num[0])?1:0, posS.includes(num[1])?1:0, posG.includes(num[2])?1:0];
+                    return hits.reduce((a,b)=>a+b,0)>=2;
+                }));
+            }
+        }
+        if($('useAotu').checked&&cachedPredictions.aotu&&cachedPredictions.aotu!=='--'){
+            filtered=new Set([...filtered].filter(num=>getAotuType(num.split('').map(Number))===cachedPredictions.aotu));
+        }
+        if($('useSancha').checked&&cachedPredictions.sancha&&cachedPredictions.sancha!=='--'){
+            const targetSancha=cachedPredictions.sancha;
+            filtered=new Set([...filtered].filter(num=>{
+                const d=num.split('').map(Number);
+                const sc=[Math.abs(d[0]-d[1]),Math.abs(d[0]-d[2]),Math.abs(d[1]-d[2])].sort((a,b)=>a-b).join('');
+                return sc===targetSancha;
+            }));
+        }
+
+        let final=[...filtered].sort();
+        if(final.length>target){
+            const stats=getRecentStats(20); if(stats){ const hot=new Set(stats.freq.map((c,i)=>c).sort((a,b)=>b-a).slice(0,4).map((_,i)=>stats.freq.indexOf(stats.freq.sort((a,b)=>b-a)[i]))); final=final.filter(n=>n.split('').some(d=>hot.has(+d))); }
+            if(final.length>target) final=final.slice(0,target);
+        }else if(final.length<target){
+            const rem=base.filter(n=>!final.includes(n)); final=final.concat(rem.slice(0,target-final.length));
+        }
+        return final.sort();
+    }
+
+    function displayDadi(nums){ $('dadiDisplay').textContent=nums&&nums.length?nums.join('  '):'暂无数据'; }
+
+    $('loadDataBtn').addEventListener('click',()=>{
+        const text=historyTextarea.value; if(!text.trim()){ alert('请粘贴历史数据'); return; }
+        const parsed=parseHistory(text); if(parsed.length===0){ alert('格式错误'); return; }
+        historyData=parsed; persistAndRefreshUI(); clearResults(); if(historyData.length>=10) refreshAllPredictions();
+        alert(`加载成功 ${parsed.length} 期`);
+    });
+    $('clearDataBtn').addEventListener('click',()=>{
+        if(confirm('确定清空？')){ historyData=[]; persistAndRefreshUI(); latestDrawDisplay.textContent='---'; predictIssueEl.textContent='🔮 ----'; clearResults(); }
+    });
+    $('updateDrawBtn').addEventListener('click',()=>{
+        const manualNum=$('manualDrawInput').value.trim(); if(!/^\d{3}$/.test(manualNum)){ alert('请输入三位数字'); return; }
+        const digits=manualNum.split('').map(Number);
+        const newIssue=historyData.length>0?generateNextIssue(historyData[0].issue):'2024001';
+        historyData.unshift({issue:newIssue, digits}); persistAndRefreshUI(); $('manualDrawInput').value='';
+        clearResults(); if(historyData.length>=10) refreshAllPredictions();
+    });
+    $('generateShuangfeiBtn').addEventListener('click',()=>{
+        if(historyData.length<5){ alert('至少5期数据'); return; }
+        refreshAllPredictions(); const dan=danInput.value.trim(); const p=scoreAllPairs(dan);
+        if(p.length===0) return; displayShuangfei(p); displayDadi(generateDadi(p,+dadiRangeSelect.value));
+    });
+    $('autoShuangfeiBtn').addEventListener('click',()=>{
+        if(historyData.length<5){ alert('至少5期数据'); return; }
+        refreshAllPredictions(); const p=scoreAllPairs(null); danInput.value='';
+        displayShuangfei(p); displayDadi(generateDadi(p,+dadiRangeSelect.value));
+    });
+    $('generateDadiBtn').addEventListener('click',()=>{
+        if(historyData.length<5){ alert('至少5期数据'); return; }
+        const dan=danInput.value.trim(); const p=scoreAllPairs(dan); if(p.length===0) return;
+        displayDadi(generateDadi(p,+dadiRangeSelect.value));
+    });
+    $('systemDadiBtn').addEventListener('click',()=>{
+        if(historyData.length<5){ alert('至少5期数据'); return; }
+        const p=scoreAllPairs(null); displayDadi(generateDadi(p,+dadiRangeSelect.value));
+    });
+
+    loadFromStorage();
+    historyData=dataStore['3D'];
+    switchGame('3D');
+})();
+</script>
+</body>
+</html>
