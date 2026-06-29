@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>福彩3D & 排列三 · 智能分析</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#ecfdf5;color:#064e3b;padding-bottom:40px}
+        .header{background:linear-gradient(145deg,#0b5e4a,#1a7a5a);color:white;padding:14px 20px;position:sticky;top:0;z-index:100;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;backdrop-filter:blur(4px);box-shadow:0 8px 32px rgba(0,0,0,0.25)}
+        .logo{font-weight:700;font-size:1.2rem;background:rgba(255,255,255,0.08);padding:4px 14px;border-radius:40px;border-left:3px solid #6ee7b7}
+        .logo span{color:#6ee7b7}
+        .clock{font-family:'Playfair Display',serif;background:rgba(255,255,255,0.08);padding:6px 18px;border-radius:40px;font-size:0.95rem;font-weight:500;color:#d1fae5}
+        .tabs{display:flex;background:rgba(255,255,255,0.06);border-radius:40px;padding:3px}
+        .tab{padding:6px 18px;border-radius:30px;border:none;background:transparent;color:rgba(255,255,255,0.7);font-weight:600;font-size:0.85rem;cursor:pointer}
+        .tab.active{background:#6ee7b7;color:#064e3b;box-shadow:0 4px 12px rgba(110,231,183,0.4)}
+        .container{max-width:1100px;margin:16px auto;padding:0 14px}
+        .card{background:rgba(255,255,255,0.9);border-radius:24px;padding:18px 20px;margin-bottom:18px;border:1px solid rgba(110,231,183,0.3);box-shadow:0 8px 32px -8px rgba(0,80,60,0.08)}
+        .card-header{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:8px;margin-bottom:12px;border-bottom:2px solid rgba(6,78,59,0.06);padding-bottom:8px;color:#064e3b}
+        .dan-num{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#d1fae5;color:#065f46;font-weight:700;border:2px solid #6ee7b7;margin:2px 3px;font-size:0.9rem}
+        .dan-num.gold{background:linear-gradient(145deg,#6ee7b7,#34d399);color:#064e3b;border-color:#059669}
+        .dan-num.strong{border-color:#059669;box-shadow:0 0 8px rgba(5,150,105,0.4)}
+        .dan-num.dudan{background:linear-gradient(145deg,#059669,#10b981);color:white;border-color:#047857;font-size:1rem}
+        .dan-num.shuangdan{background:linear-gradient(145deg,#10b981,#34d399);color:#064e3b;border-color:#059669}
+        .dan-num.sandan{background:linear-gradient(145deg,#34d399,#6ee7b7);color:#064e3b;border-color:#059669}
+        .dan-num.sidan{background:linear-gradient(145deg,#6ee7b7,#a7f3d0);color:#065f46;border-color:#059669}
+        .dan-num.wudan{background:linear-gradient(145deg,#a7f3d0,#d1fae5);color:#065f46;border-color:#059669}
+        .double-fly{display:inline-block;border:2px solid;border-radius:30px;padding:4px 16px;margin:3px 4px;font-weight:700;font-size:0.8rem}
+        .double-fly.highly-recommend{background:#ecfdf5;border-color:#059669;color:#064e3b}
+        .double-fly.recommend{background:#d1fae5;border-color:#10b981;color:#065f46}
+        .double-fly.normal{background:#f0fdf4;border-color:#86efac;color:#065f46}
+        .code-box{display:inline-block;background:#ecfdf5;border:2px solid #059669;border-radius:30px;padding:4px 16px;margin:3px 4px;font-weight:700;font-size:0.8rem;color:#064e3b}
+        .btn{padding:8px 20px;border-radius:40px;border:none;font-weight:600;cursor:pointer;font-size:0.78rem;background:#0b5e4a;color:white;display:inline-flex;align-items:center;gap:6px}
+        .btn-outline{background:white;border:2px solid #0b5e4a;color:#0b5e4a}
+        .btn-sm{padding:5px 16px;font-size:0.7rem}
+        .btn-warning{background:#d97706;color:white}
+        .btn-success{background:#059669;color:white}
+        .flex-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+        input,select,textarea{padding:8px 14px;border-radius:30px;border:1px solid #a7f3d0;background:white;font-size:0.8rem;outline:none;font-family:'Inter',sans-serif}
+        textarea{border-radius:16px;resize:vertical;font-family:monospace;font-size:0.7rem}
+        .latest-issue{font-size:1.6rem;font-weight:700;font-family:'Playfair Display',serif}
+        .latest-num{font-size:2.6rem;font-weight:800;font-family:'Playfair Display',serif;letter-spacing:6px;color:#064e3b;background:rgba(110,231,183,0.15);padding:0 12px;border-radius:30px}
+        .dadi-scroll{background:#f0fdf4;border-radius:12px;padding:10px;max-height:120px;overflow-y:auto;font-size:0.7rem;font-family:monospace;border:1px solid #a7f3d0;white-space:pre-wrap;word-break:break-all}
+        .total-count{font-size:0.9rem;font-weight:600;color:#065f46;background:#d1fae5;padding:2px 14px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+        .logout-btn{background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);padding:4px 14px;border-radius:30px;font-size:0.8rem;cursor:pointer;transition:0.2s}
+        .logout-btn:hover{background:rgba(255,255,255,0.25)}
+        @media(max-width:640px){.header{padding:10px 14px}.latest-num{font-size:2rem}}
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="logo">🎲 <span>智能分析</span>·3D/排列三</div>
+    <div class="clock" id="liveClock">加载中...</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+        <span id="userInfo" style="font-size:0.85rem;color:#d1fae5;"></span>
+        <button class="logout-btn" onclick="logout()">退出</button>
+        <div class="tabs">
+            <button class="tab active" onclick="switchLottery('3d')">福彩3D</button>
+            <button class="tab" onclick="switchLottery('pl3')">排列三</button>
+        </div>
+    </div>
+</header>
+<div class="container" id="appContainer"><p style="text-align:center;padding:40px;">加载中…</p></div>
+
+<script>
+// ==================== 登录验证 ====================
+const API_BASE = 'https://lottery-login.vercel.app'; // 你的后端域名
+
+// 页面加载时检查登录状态
+(async function checkAuth() {
+    const userInfo = document.getElementById('userInfo');
+    try {
+        const res = await fetch(`${API_BASE}/api/me`, {
+            credentials: 'include'
+        });
+        if (res.ok) {
+            const data = await res.json();
+            userInfo.textContent = '👋 ' + data.username;
+        } else {
+            // 未登录或过期，跳转到登录页
+            window.location.href = 'login.html';
+        }
+    } catch (e) {
+        window.location.href = 'login.html';
+    }
+})();
+
+// 退出登录
+async function logout() {
+    await fetch(`${API_BASE}/api/logout`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    window.location.href = 'login.html';
+}
+
+// ==================== 原有彩票逻辑（无改动） ====================
+(function() {
+  const STORAGE_FC = 'fc3d_v20'; const STORAGE_PL = 'pl3_v20';
+  const fc3dDefault = [
+    {issue:'2025001',num:'218'},{issue:'2025002',num:'669'},{issue:'2025003',num:'729'},{issue:'2025004',num:'705'},
+    {issue:'2025005',num:'806'},{issue:'2025006',num:'212'},{issue:'2025007',num:'633'},{issue:'2025008',num:'423'},
+    {issue:'2025009',num:'265'},{issue:'2025010',num:'437'},{issue:'2025011',num:'927'},{issue:'2025012',num:'590'},
+    {issue:'2025013',num:'468'},{issue:'2025014',num:'251'},{issue:'2025015',num:'438'},{issue:'2025016',num:'920'},
+    {issue:'2025017',num:'659'},{issue:'2025018',num:'430'},{issue:'2025019',num:'953'},{issue:'2025020',num:'868'},
+    {issue:'2025021',num:'446'},{issue:'2025022',num:'285'},{issue:'2025023',num:'247'},{issue:'2025024',num:'473'},
+    {issue:'2025025',num:'749'},{issue:'2025026',num:'149'},{issue:'2025027',num:'849'},{issue:'2025028',num:'266'},
+    {issue:'2025029',num:'024'},{issue:'2025030',num:'935'}
+  ];
+  const pl3Default = [
+    {issue:'25001',num:'123'},{issue:'25002',num:'900'},{issue:'25003',num:'168'},{issue:'25004',num:'351'},
+    {issue:'25005',num:'617'},{issue:'25006',num:'656'},{issue:'25007',num:'362'},{issue:'25008',num:'128'},
+    {issue:'25009',num:'806'},{issue:'25010',num:'143'},{issue:'25011',num:'027'},{issue:'25012',num:'471'},
+    {issue:'25013',num:'978'},{issue:'25014',num:'508'},{issue:'25015',num:'398'},{issue:'25016',num:'456'},
+    {issue:'25017',num:'001'},{issue:'25018',num:'292'},{issue:'25019',num:'734'},{issue:'25020',num:'159'},
+    {issue:'25021',num:'346'},{issue:'25022',num:'484'},{issue:'25023',num:'788'},{issue:'25024',num:'228'},
+    {issue:'25025',num:'677'},{issue:'25026',num:'346'},{issue:'25027',num:'048'},{issue:'25028',num:'822'},
+    {issue:'25029',num:'489'},{issue:'25030',num:'297'}
+  ];
+
+  let currentType = '3d'; let data = []; let userDanInput = '';
+
+  function loadData() {
+    const key = currentType === '3d' ? STORAGE_FC : STORAGE_PL;
+    const stored = localStorage.getItem(key);
+    if(stored) { try { const p = JSON.parse(stored); if(Array.isArray(p) && p.length && p[0].issue) return p; } catch(e) {} }
+    const def = currentType === '3d' ? fc3dDefault : pl3Default;
+    const cloned = JSON.parse(JSON.stringify(def));
+    localStorage.setItem(key, JSON.stringify(cloned));
+    return cloned;
+  }
+  function saveData(arr) { const key = currentType === '3d' ? STORAGE_FC : STORAGE_PL; localStorage.setItem(key, JSON.stringify(arr)); }
+  data = loadData();
+
+  const parseNum = str => { const b=+str[0], s=+str[1], g=+str[2]; return {b,s,g,num:str, sum:b+s+g, span:Math.max(b,s,g)-Math.min(b,s,g)}; };
+  const mean = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
+
+  function getFormFilter(parsedAll) {
+    const rec30 = parsedAll.slice(-30);
+    const rec10 = parsedAll.slice(-10);
+    const oddCnt = rec10.reduce((c,p)=>c+[p.b,p.s,p.g].filter(n=>n%2).length,0);
+    const bigCnt = rec10.reduce((c,p)=>c+[p.b,p.s,p.g].filter(n=>n>=5).length,0);
+    return {
+      avgSum: mean(rec30.map(p=>p.sum)),
+      avgSpan: mean(rec30.map(p=>p.span)),
+      oddBias: oddCnt/(rec10.length*3)>0.55?'odd':(oddCnt/(rec10.length*3)<0.45?'even':'bal'),
+      bigBias: bigCnt/(rec10.length*3)>0.55?'big':(bigCnt/(rec10.length*3)<0.45?'small':'bal')
+    };
+  }
+
+  function generateDadi(digitsArray, targetNotes = 300) {
+    const parsedAll = data.map(d => parseNum(d.num));
+    const filter = getFormFilter(parsedAll);
+    let pool = [...new Set(digitsArray)];
+    function generateCombos(digits) {
+      const combos = [];
+      for (let a of digits) for (let b of digits) for (let c of digits) {
+        if (a===b && b===c) continue;
+        combos.push(`${a}${b}${c}`);
+      }
+      return [...new Set(combos)].sort();
+    }
+    function filterCombos(combos) {
+      return combos.filter(num => {
+        const a=+num[0],b=+num[1],c=+num[2];
+        const sum = a+b+c, span = Math.max(a,b,c)-Math.min(a,b,c);
+        if (Math.abs(sum - filter.avgSum) > 6) return false;
+        if (Math.abs(span - filter.avgSpan) > 3) return false;
+        const oddCount = (a%2)+(b%2)+(c%2);
+        if (filter.oddBias==='odd' && oddCount<2) return false;
+        if (filter.oddBias==='even' && oddCount>1) return false;
+        const bigCount = (a>=5?1:0)+(b>=5?1:0)+(c>=5?1:0);
+        if (filter.bigBias==='big' && bigCount<2) return false;
+        if (filter.bigBias==='small' && bigCount>1) return false;
+        return true;
+      });
+    }
+    let currentDigits = [...pool];
+    let allCombos = generateCombos(currentDigits);
+    let filtered = filterCombos(allCombos);
+    if (filtered.length < targetNotes) {
+      const remaining = allCombos.filter(n => !filtered.includes(n));
+      filtered = filtered.concat(remaining);
+    }
+    if (filtered.length < targetNotes) {
+      const freq = Array(10).fill(0);
+      parsedAll.forEach(p => { freq[p.b]++; freq[p.s]++; freq[p.g]++; });
+      const sortedByFreq = [0,1,2,3,4,5,6,7,8,9].sort((a,b)=>freq[b]-freq[a]);
+      while (filtered.length < targetNotes && currentDigits.length < 10) {
+        for (const d of sortedByFreq) {
+          if (!currentDigits.includes(d)) { currentDigits.push(d); break; }
+        }
+        if (currentDigits.length === pool.length) break;
+        allCombos = generateCombos(currentDigits);
+        filtered = filterCombos(allCombos);
+        if (filtered.length < targetNotes) {
+          const remaining = allCombos.filter(n => !filtered.includes(n));
+          filtered = filtered.concat(remaining);
+        }
+      }
+    }
+    return filtered.slice(0, targetNotes);
+  }
+
+  // ★ 胆码推荐（基于近期走势+历史相似度）
+  function generateDanRecommendation() {
+    const useData = data;
+    if (!useData || useData.length < 20) return { dans: [] };
+    const parsedAll = useData.map(d => parseNum(d.num));
+    const latest = parsedAll[parsedAll.length-1];
+    const total = parsedAll.length;
+
+    // 1. 统计基础指标
+    const freq = Array(10).fill(0);
+    const missCur = Array(10).fill(0);
+    const hot10 = Array(10).fill(0);
+    parsedAll.forEach(p => { freq[p.b]++; freq[p.s]++; freq[p.g]++; });
+    for(let n=0;n<10;n++) for(let i=total-1;i>=0;i--){ if(parsedAll[i].b===n||parsedAll[i].s===n||parsedAll[i].g===n) break; missCur[n]++; }
+    parsedAll.slice(-10).forEach(p => { hot10[p.b]++; hot10[p.s]++; hot10[p.g]++; });
+
+    const maxFreq = Math.max(...freq);
+    const maxMiss = Math.max(...missCur);
+    const maxHot = Math.max(...hot10);
+    const adj = [...new Set([latest.b,latest.s,latest.g].flatMap(n=>[(n+9)%10,(n+1)%10]))];
+
+    // 2. 相似走势下一期数字频率
+    const getFeatures = p => [p.b,p.s,p.g,p.sum/27,p.span/9,p.b%3,p.s%3,p.g%3,p.b%2,p.s%2,p.g%2,(p.b>=5?1:0),(p.s>=5?1:0),(p.g>=5?1:0)];
+    const latestFeat = getFeatures(latest);
+    const simDist = [];
+    for(let i=0; i<total-1; i++) {
+      const feat = getFeatures(parsedAll[i]);
+      let dist = 0; for(let j=0; j<feat.length; j++) dist += (feat[j]-latestFeat[j])**2;
+      simDist.push({dist: Math.sqrt(dist), nextNum: useData[i+1].num});
+    }
+    simDist.sort((a,b)=>a.dist - b.dist);
+    const K = Math.max(20, Math.floor(total*0.05));
+    const topSim = simDist.slice(0, K);
+    const simDigitFreq = Array(10).fill(0);
+    topSim.forEach(s => {
+      const np = parseNum(s.nextNum);
+      simDigitFreq[np.b]++; simDigitFreq[np.s]++; simDigitFreq[np.g]++;
+    });
+    const maxSimFreq = Math.max(...simDigitFreq);
+
+    // 3. 综合得分
+    const scores = Array(10).fill(0);
+    for(let d=0;d<10;d++) {
+      const freqScore = (freq[d]/maxFreq)*20;
+      const missScore = (missCur[d]/maxMiss)*25;
+      const hotScore = (hot10[d]/maxHot)*15;
+      const simScore = (simDigitFreq[d]/maxSimFreq)*30;
+      let extra = 0;
+      if(adj.includes(d)) extra += 10;
+      if([latest.b,latest.s,latest.g].includes(9-d)) extra += 8;
+      scores[d] = freqScore + missScore + hotScore + simScore + extra;
+    }
+
+    const sorted = Array.from({length:10},(_,i)=>({digit:i, score: scores[i]})).sort((a,b)=>b.score-a.score);
+    const top5 = sorted.slice(0,5).map((d, idx) => ({
+      digit: d.digit,
+      level: idx===0?'独胆':(idx===1?'双胆':(idx===2?'三胆':(idx===3?'四胆':'五胆'))),
+      score: d.score
+    }));
+    return { dans: top5 };
+  }
+
+  function autoAnalyze() {
+    const useData = data;
+    if (!useData || useData.length < 10) return { dans: [], pairs: [], systemDadi: [] };
+    const parsedAll = useData.map(d => parseNum(d.num));
+    const latest = parsedAll[parsedAll.length-1];
+    const total = parsedAll.length;
+    const fa = Array(10).fill(0), missCur = Array(10).fill(0), hot10 = Array(10).fill(0);
+    parsedAll.forEach(p => { fa[p.b]++; fa[p.s]++; fa[p.g]++; });
+    for(let n=0;n<10;n++) for(let i=total-1;i>=0;i--){ if(parsedAll[i].b===n||parsedAll[i].s===n||parsedAll[i].g===n) break; missCur[n]++; }
+    parsedAll.slice(-10).forEach(p => { hot10[p.b]++; hot10[p.s]++; hot10[p.g]++; });
+    const maxFa = Math.max(...fa), maxMiss = Math.max(...missCur), maxHot = Math.max(...hot10);
+    const adj = [...new Set([latest.b,latest.s,latest.g].flatMap(n=>[(n+9)%10,(n+1)%10]))];
+    const danScores = Array(10).fill(0);
+    for(let d=0;d<10;d++) {
+      danScores[d] = (fa[d]/maxFa)*25 + (missCur[d]/maxMiss)*25 + (hot10[d]/maxHot)*20;
+      if(adj.includes(d)) danScores[d] += 15;
+      if([latest.b,latest.s,latest.g].includes(9-d)) danScores[d] += 10;
+    }
+    const danCandidates = Array.from({length:10},(_,i)=>({digit:i, score: danScores[i]})).sort((a,b)=>b.score - a.score);
+    const maxScore = danCandidates[0].score;
+    const dans = danCandidates.slice(0,5).map(d => ({ digit: d.digit, level: d.score >= maxScore*0.8 ? 'strong' : (d.score >= maxScore*0.5 ? 'rec' : 'normal') }));
+
+    const totalPairs = []; for(let a=0;a<10;a++) for(let b=a+1;b<10;b++) totalPairs.push(`${a}${b}`);
+    const pairScores = {};
+    const getFeatures = p => [p.b,p.s,p.g,p.sum/27,p.span/9,p.b%3,p.s%3,p.g%3,p.b%2,p.s%2,p.g%2,(p.b>=5?1:0),(p.s>=5?1:0),(p.g>=5?1:0)];
+    const latestFeat = getFeatures(latest);
+    const simDist = [];
+    for(let i=0; i<total-1; i++) {
+      const feat = getFeatures(parsedAll[i]);
+      let dist = 0; for(let j=0; j<feat.length; j++) dist += (feat[j]-latestFeat[j])**2;
+      simDist.push({dist: Math.sqrt(dist), nextNum: useData[i+1].num});
+    }
+    simDist.sort((a,b)=>a.dist - b.dist);
+    const K = Math.max(10, Math.floor(total*0.05));
+    const topSim = simDist.slice(0, K);
+    const simPairFreq = {};
+    topSim.forEach(s => {
+      const np = parseNum(s.nextNum);
+      for(let i=0;i<3;i++) for(let j=i+1;j<3;j++) {
+        const a = Math.min(np.b,np.s,np.g), b = Math.max(np.b,np.s,np.g);
+        simPairFreq[`${a}${b}`] = (simPairFreq[`${a}${b}`]||0)+1;
+      }
+    });
+    const pairMiss = {}; totalPairs.forEach(p => pairMiss[p] = {cur:0, cnt:0});
+    let lastIdx = {};
+    for(let i=0; i<total; i++) {
+      const d = parsedAll[i]; const digits = [d.b,d.s,d.g];
+      for(const pair of totalPairs) {
+        const a=+pair[0], b=+pair[1];
+        if(digits.includes(a)&&digits.includes(b)) {
+          if(lastIdx[pair]!==undefined) pairMiss[pair].cur = Math.max(pairMiss[pair].cur, i-lastIdx[pair]-1);
+          lastIdx[pair] = i; pairMiss[pair].cnt++;
+        }
+      }
+    }
+    totalPairs.forEach(p => pairMiss[p].cur = total-1 - (lastIdx[p]||0));
+    const rec30 = parsedAll.slice(-30), rec10 = parsedAll.slice(-10);
+    const avgSum = mean(rec30.map(p=>p.sum)), avgSpan = mean(rec30.map(p=>p.span));
+    const oddCnt = rec10.reduce((c,p)=>c+[p.b,p.s,p.g].filter(n=>n%2).length,0);
+    const bigCnt = rec10.reduce((c,p)=>c+[p.b,p.s,p.g].filter(n=>n>=5).length,0);
+    const oddBias = oddCnt/(rec10.length*3)>0.55?'odd':(oddCnt/(rec10.length*3)<0.45?'even':'bal');
+    const bigBias = bigCnt/(rec10.length*3)>0.55?'big':(bigCnt/(rec10.length*3)<0.45?'small':'bal');
+    totalPairs.forEach(pair => {
+      const a=+pair[0], b=+pair[1];
+      let score = 0;
+      score += (simPairFreq[pair]||0) * 3;
+      if(Math.abs(a+b-avgSum)<=4) score += 5;
+      if(Math.abs(Math.abs(a-b)-avgSpan)<=2) score += 4;
+      if((oddBias==='odd' && (a%2)+(b%2)>=1) || (oddBias==='even' && (a%2)+(b%2)<=1) || oddBias==='bal') score += 2;
+      if((bigBias==='big' && (a>=5||b>=5)) || (bigBias==='small' && (a<5&&b<5)) || bigBias==='bal') score += 2;
+      if(pairMiss[pair].cur > (pairMiss[pair].cnt? pairMiss[pair].cnt : 5)) score += 3;
+      pairScores[pair] = score;
+    });
+    const sortedPairs = Object.entries(pairScores).sort((a,b)=>b[1]-a[1]);
+    const maxPairScore = sortedPairs[0]?.[1]||1;
+    const pairs = sortedPairs.slice(0,10).map(e => ({ pair: e[0], level: e[1] >= maxPairScore*0.8 ? 'strong' : (e[1] >= maxPairScore*0.5 ? 'rec' : 'normal') }));
+    const systemDadi = generateDadi(dans.map(d=>d.digit), 800);
+    return { dans, pairs, systemDadi };
+  }
+
+  function generateSmartDoubleFly(userDigits) {
+    const useData = data;
+    if (!useData || useData.length < 10) return { doubleFlys: [], jingXuan: [], dadi: [] };
+    const parsedAll = useData.map(d => parseNum(d.num));
+    const latest = parsedAll[parsedAll.length-1];
+    const getFeatures = p => {
+      const feats = [];
+      feats.push(p.b, p.s, p.g); feats.push(p.sum/27); feats.push(p.span/9);
+      feats.push(p.b%3, p.s%3, p.g%3); feats.push(p.b%2, p.s%2, p.g%2);
+      feats.push(p.b<5?0:1, p.s<5?0:1, p.g<5?0:1);
+      const isPrime = n => [2,3,5,7].includes(n);
+      feats.push(isPrime(p.b)?1:0, isPrime(p.s)?1:0, isPrime(p.g)?1:0);
+      return feats;
+    };
+    const latestFeat = getFeatures(latest);
+    const similarities = [];
+    for(let i=0; i<parsedAll.length-1; i++) {
+      const feat = getFeatures(parsedAll[i]);
+      let dist = 0; for(let j=0; j<feat.length; j++) dist += (feat[j]-latestFeat[j])**2;
+      similarities.push({index:i, dist: Math.sqrt(dist), nextNum: useData[i+1].num});
+    }
+    similarities.sort((a,b)=>a.dist - b.dist);
+    const K = Math.max(10, Math.floor(parsedAll.length*0.05));
+    const topSimilar = similarities.slice(0, K);
+    const pairFreqFromSim = {};
+    topSimilar.forEach(s => {
+      const np = parseNum(s.nextNum);
+      for(let i=0;i<3;i++) for(let j=i+1;j<3;j++) {
+        const a = Math.min(np.b,np.s,np.g), b = Math.max(np.b,np.s,np.g);
+        pairFreqFromSim[`${a}${b}`] = (pairFreqFromSim[`${a}${b}`]||0)+1;
+      }
+    });
+    let contextPairFreq = {};
+    const contextWindowSize = 10;
+    if (parsedAll.length >= contextWindowSize + 1) {
+      const currentSegment = parsedAll.slice(-contextWindowSize);
+      const getSegFeatures = (p) => [p.sum, p.span, (p.b%2)+(p.s%2)+(p.g%2), (p.b>=5?1:0)+(p.s>=5?1:0)+(p.g>=5?1:0)];
+      const curSeq = currentSegment.map(getSegFeatures);
+      const segSims = [];
+      for (let i = 0; i <= parsedAll.length - contextWindowSize - 1; i++) {
+        const histSeg = parsedAll.slice(i, i+contextWindowSize);
+        const histSeq = histSeg.map(getSegFeatures);
+        let totalDist = 0;
+        for (let j=0; j<contextWindowSize; j++) {
+          totalDist += Math.sqrt((curSeq[j][0]-histSeq[j][0])**2+(curSeq[j][1]-histSeq[j][1])**2+(curSeq[j][2]-histSeq[j][2])**2+(curSeq[j][3]-histSeq[j][3])**2);
+        }
+        const nextIdx = i + contextWindowSize;
+        if (nextIdx < parsedAll.length) segSims.push({ dist: totalDist, nextNum: useData[nextIdx].num });
+      }
+      segSims.sort((a,b)=>a.dist - b.dist);
+      const K2 = Math.max(10, Math.floor(parsedAll.length * 0.05));
+      const topSeg = segSims.slice(0, K2);
+      topSeg.forEach(s => {
+        const np = parseNum(s.nextNum);
+        for(let i=0;i<3;i++) for(let j=i+1;j<3;j++) {
+          const a = Math.min(np.b,np.s,np.g), b = Math.max(np.b,np.s,np.g);
+          contextPairFreq[`${a}${b}`] = (contextPairFreq[`${a}${b}`]||0)+1;
+        }
+      });
+    }
+    const recent30 = parsedAll.slice(-30);
+    const avgSum = mean(recent30.map(p=>p.sum));
+    const avgSpan = mean(recent30.map(p=>p.span));
+    const recent10 = parsedAll.slice(-10);
+    const oddCount = recent10.reduce((c,p)=>c+[p.b,p.s,p.g].filter(n=>n%2).length,0);
+    const bigCount = recent10.reduce((c,p)=>c+[p.b,p.s,p.g].filter(n=>n>=5).length,0);
+    const oddBias = oddCount/(recent10.length*3)>0.55?'odd':(oddCount/(recent10.length*3)<0.45?'even':'balanced');
+    const bigBias = bigCount/(recent10.length*3)>0.55?'big':(bigCount/(recent10.length*3)<0.45?'small':'balanced');
+    const totalPairs = []; for(let a=0;a<10;a++) for(let b=a+1;b<10;b++) totalPairs.push(`${a}${b}`);
+    const allPairMiss = {}; totalPairs.forEach(p => allPairMiss[p] = {cur:0, max:0, avg:0, cnt:0});
+    let lastIdx = Array(totalPairs.length).fill(-1);
+    for(let i=0; i<parsedAll.length; i++) {
+      const d = parsedAll[i]; const digits = [d.b,d.s,d.g];
+      totalPairs.forEach((pair,idx)=>{
+        const a=+pair[0],b=+pair[1];
+        if(digits.includes(a)&&digits.includes(b)) {
+          if(lastIdx[idx]!==-1) allPairMiss[pair].max = Math.max(allPairMiss[pair].max, i-lastIdx[idx]-1);
+          lastIdx[idx]=i; allPairMiss[pair].cnt++;
+        }
+      });
+    }
+    totalPairs.forEach(pair=>{
+      if(allPairMiss[pair].cnt>0) {
+        allPairMiss[pair].avg = Math.floor((parsedAll.length-1)/(allPairMiss[pair].cnt+1));
+        allPairMiss[pair].cur = parsedAll.length-1 - (lastIdx[totalPairs.indexOf(pair)]||0);
+      } else { allPairMiss[pair].cur=parsedAll.length; allPairMiss[pair].avg=parsedAll.length; }
+    });
+    const userDanSet = new Set(userDigits);
+    const candidates = [];
+    totalPairs.forEach(pair => {
+      const a=+pair[0],b=+pair[1];
+      if(userDanSet.size && !userDanSet.has(a) && !userDanSet.has(b)) return;
+      const simScore = Math.min(1, (pairFreqFromSim[pair]||0)/Math.max(1,K*0.2)) * 25;
+      const contextScore = Math.min(1, (contextPairFreq[pair]||0)/Math.max(1,(parsedAll.length>=contextWindowSize+1?K:1)*0.2)) * 20;
+      let formScore = 20;
+      if(Math.abs(a+b-avgSum)>4) formScore-=12;
+      if(Math.abs(Math.abs(a-b)-avgSpan)>3) formScore-=8;
+      const oddPair = (a%2)+(b%2);
+      if(oddBias==='odd'&&oddPair===0) formScore-=6;
+      if(oddBias==='even'&&oddPair===2) formScore-=6;
+      if(bigBias==='big'&&a<5&&b<5) formScore-=4;
+      if(bigBias==='small'&&a>=5&&b>=5) formScore-=4;
+      formScore=Math.max(0,formScore);
+      let missScore = 15;
+      const mi=allPairMiss[pair];
+      if(mi.avg>0&&mi.cur>mi.avg*1.5) missScore=15;
+      else if(mi.cur>mi.avg) missScore=10;
+      else missScore=3;
+      let danScore = userDanSet.has(a)&&userDanSet.has(b)?10:(userDanSet.has(a)||userDanSet.has(b)?8:0);
+      candidates.push({pair, score:simScore+contextScore+formScore+missScore+danScore});
+    });
+    candidates.sort((a,b)=>b.score-a.score);
+    const danCount = userDigits.length;
+    let maxPairs = danCount===1?6:(danCount>=2&&danCount<=4?10:Math.min(10,candidates.length));
+    const maxScore = candidates[0]?.score||1;
+    const doubleFlys = candidates.slice(0,maxPairs).map(c => ({ pair: c.pair, level: c.score >= maxScore*0.8 ? 'strong' : (c.score >= maxScore*0.5 ? 'rec' : 'normal') }));
+    const jingXuanSet = new Set();
+    doubleFlys.forEach(f=>{
+      const a=+f.pair[0],b=+f.pair[1];
+      const cand = userDigits.filter(d=>d!==a&&d!==b);
+      const third = cand.length?cand[0]:(a!==0?0:1);
+      jingXuanSet.add(`${a}${b}${third}`); jingXuanSet.add(`${a}${third}${b}`); jingXuanSet.add(`${b}${a}${third}`);
+    });
+    const manDadi = generateDadi(userDigits, 800);
+    return { doubleFlys, jingXuan: [...jingXuanSet].slice(0,10), dadi: manDadi };
+  }
+
+  function render() {
+    data.sort((a, b) => parseInt(a.issue) - parseInt(b.issue));
+    if(!data?.length){ data=loadData(); if(!data?.length) return; }
+    const latest=data[data.length-1]; const nextIssue=parseInt(latest.issue)+1||'';
+    const totalCount = data.length;
+    const autoRes = autoAnalyze();
+    const danRec = generateDanRecommendation();
+    let smartDF = { doubleFlys:[], jingXuan:[], dadi:[] };
+    if(userDanInput.trim()){
+      const ud = userDanInput.split(/[,，\s]+/).map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=9);
+      smartDF = generateSmartDoubleFly([...new Set(ud)]);
+    }
+    const dataText = [...data].reverse().map(d=>`${d.issue} ${d.num}`).join('\n');
+
+    document.getElementById('appContainer').innerHTML = `
+    <div class="card" style="background:linear-gradient(145deg,#ffffff,#f0fdf4);">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span class="latest-issue">📌 ${latest.issue} 期</span>
+          <span class="latest-num">${latest.num}</span>
+        </div>
+        <span class="total-count">📋 历史数据：${totalCount} 期</span>
+      </div>
+    </div>
+    <div class="card"><div class="card-header">📦 数据管理</div>
+      <div class="flex-row"><input id="si" placeholder="期号" value="${nextIssue}" style="width:80px;"><input id="sn" placeholder="号码" maxlength="3" style="width:80px;"><button class="btn btn-sm" onclick="addSingle()">添加</button></div>
+      <details open><summary>批量数据</summary><textarea id="batchInput" rows="6">${dataText}</textarea><button class="btn btn-sm" onclick="batchImport()">智能导入</button></details>
+      <div class="flex-row"><button class="btn btn-sm btn-warning" onclick="exportData()">导出</button><button class="btn btn-sm btn-success" onclick="document.getElementById('importFile').click()">导入文件</button><input id="importFile" type="file" accept=".json" onchange="handleImport(event)" style="display:none;"><button class="btn btn-sm btn-outline" onclick="resetData()">重置</button></div>
+    </div>
+
+    <div class="card" style="border:4px solid #059669;background:rgba(5,150,105,0.05);">
+      <div class="card-header">🎯 胆码推荐（近期走势+相似度） 第 ${nextIssue} 期</div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;">
+        <strong>推荐胆码：</strong>
+        ${danRec.dans.map(d => `<span class="dan-num ${d.level==='独胆'?'dudan':d.level==='双胆'?'shuangdan':d.level==='三胆'?'sandan':d.level==='四胆'?'sidan':'wudan'}">${d.digit}<small style="font-size:0.6rem;display:block;line-height:1;">${d.level}</small></span>`).join('')}
+      </div>
+      <div style="margin-top:8px;font-size:0.75rem;color:#4b5563;">综合分析历史频率、遗漏、近期热度、邻号对望及历史相似走势。</div>
+    </div>
+
+    <div class="card" style="border:4px solid #10b981;background:rgba(16,185,129,0.05);">
+      <div class="card-header">🎯 系统自动分析 第 ${nextIssue} 期</div>
+      <div><strong>推荐胆码：</strong>${autoRes.dans.map(d=>`<span class="dan-num gold ${d.level==='strong'?'strong':''}">${d.digit}</span>`).join(' ')}<span style="font-size:0.7rem;margin-left:8px;">${autoRes.dans.map(d=>d.level==='strong'?'🔥':d.level==='rec'?'⭐':'·').join('')}</span></div>
+      <div style="margin-top:8px;"><strong>推荐双飞 (10个)：</strong>${autoRes.pairs.map(p=>`<span class="double-fly ${p.level==='strong'?'highly-recommend':p.level==='rec'?'recommend':'normal'}">${p.pair}</span>`).join(' ')}</div>
+      <div style="margin-top:12px;"><strong>系统直选大底：</strong>
+        <div class="flex-row" style="margin:6px 0;">
+          <select id="sysDadiCount"><option value="100">100注</option><option value="200">200注</option><option value="300" selected>300注</option><option value="500">500注</option><option value="800">800注</option></select>
+          <button class="btn btn-sm btn-outline" id="copySysBtn">📋 复制大底</button>
+        </div>
+        <div id="sysDadiBox" class="dadi-scroll">${autoRes.systemDadi.slice(0,300).join(' ')}</div>
+      </div>
+    </div>
+    <div class="card"><div class="card-header">🎨 智能双飞（自选胆码） 第 ${nextIssue} 期</div>
+      <div class="flex-row"><input id="udf2" value="${userDanInput}" placeholder="如 1,3,5" style="width:110px;"><button class="btn btn-sm" onclick="applyUserDan2()">分析</button></div>
+      ${smartDF.doubleFlys.length>0?`
+        <div style="margin-top:8px;"><strong>双飞：</strong>${smartDF.doubleFlys.map(f=>`<span class="double-fly ${f.level==='strong'?'highly-recommend':f.level==='rec'?'recommend':'normal'}">${f.pair}</span>`).join(' ')}</div>
+        <div style="margin-top:6px;"><strong>精选十注：</strong>${smartDF.jingXuan.map(n=>`<span class="code-box">${n}</span>`).join(' ')}</div>
+        <div style="margin-top:12px;"><strong>自选胆码大底：</strong>
+          <div class="flex-row" style="margin:6px 0;">
+            <select id="manDadiCount"><option value="100">100注</option><option value="200">200注</option><option value="300" selected>300注</option><option value="500">500注</option><option value="800">800注</option></select>
+            <button class="btn btn-sm btn-outline" id="copyManBtn">📋 复制大底</button>
+          </div>
+          <div id="manDadiBox" class="dadi-scroll">${smartDF.dadi.slice(0,300).join(' ')}</div>
+        </div>
+      `:`<p class="note">输入胆码后点击分析（1胆→6个双飞，2-4胆→10个双飞），并生成直选大底</p>`}
+    </div>`;
+
+    setTimeout(() => {
+      const sysSelect = document.getElementById('sysDadiCount');
+      const sysBox = document.getElementById('sysDadiBox');
+      if (sysSelect && sysBox) {
+        sysSelect.onchange = () => { sysBox.textContent = autoRes.systemDadi.slice(0, parseInt(sysSelect.value)).join(' '); };
+      }
+      const manSelect = document.getElementById('manDadiCount');
+      const manBox = document.getElementById('manDadiBox');
+      if (manSelect && manBox) {
+        manSelect.onchange = () => { manBox.textContent = smartDF.dadi.slice(0, parseInt(manSelect.value)).join(' '); };
+      }
+      document.getElementById('copySysBtn').onclick = () => navigator.clipboard?.writeText(sysBox.textContent).then(()=>alert('已复制')).catch(()=>alert('请手动复制'));
+      document.getElementById('copyManBtn').onclick = () => navigator.clipboard?.writeText(manBox.textContent).then(()=>alert('已复制')).catch(()=>alert('请手动复制'));
+    }, 0);
+  }
+
+  window.addSingle = () => {
+    const i=document.getElementById('si').value.trim(), n=document.getElementById('sn').value.trim();
+    if(!i||!/^\d{3}$/.test(n)) return alert('请输入正确期号和3位号码');
+    data.push({issue:i,num:n}); data.sort((a,b)=>parseInt(a.issue)-parseInt(b.issue));
+    saveData(data); render();
+  };
+  window.batchImport = () => {
+    const t=document.getElementById('batchInput').value.trim(); if(!t) return;
+    const ls=t.split(/[\n\r]+/), rc=[];
+    ls.forEach(l=>{ const p=l.trim().split(/[\s,，\t]+/); if(p.length>=2&&/^\d{3}$/.test(p[1])) rc.push({issue:p[0],num:p[1]}); });
+    if(!rc.length) return alert('无有效数据');
+    data = rc.sort((a,b)=>parseInt(a.issue)-parseInt(b.issue));
+    saveData(data); render();
+  };
+  window.exportData = () => { const b=new Blob([JSON.stringify(data)]); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`${currentType==='3d'?'fc3d':'pl3'}_data.json`; a.click(); };
+  window.handleImport = e => {
+    const f=e.target.files[0]; if(!f) return; const r=new FileReader();
+    r.onload=ev=>{try{const im=JSON.parse(ev.target.result); if(Array.isArray(im)&&im.length&&im[0].issue){data=im.sort((a,b)=>parseInt(a.issue)-parseInt(b.issue));saveData(data);render();}else alert('格式错误');}catch(ex){alert('解析失败');}};
+    r.readAsText(f); e.target.value='';
+  };
+  window.resetData = () => { if(!confirm('重置为默认数据？'))return; data=currentType==='3d'?JSON.parse(JSON.stringify(fc3dDefault)):JSON.parse(JSON.stringify(pl3Default)); data.sort((a,b)=>parseInt(a.issue)-parseInt(b.issue)); saveData(data); render(); };
+  window.switchLottery = type => { currentType=type; document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===0?type==='3d':type==='pl3')); data=loadData(); userDanInput=''; render(); };
+  window.applyUserDan2 = () => { userDanInput=document.getElementById('udf2').value; render(); };
+
+  function updateClock(){ const n=new Date(); document.getElementById('liveClock').innerHTML=`📅 ${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')} 星期${['日','一','二','三','四','五','六'][n.getDay()]} ⏰ ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`; }
+  setInterval(updateClock,1000); updateClock();
+  setTimeout(render,50);
+})();
+</script>
+</body>
+</html>
