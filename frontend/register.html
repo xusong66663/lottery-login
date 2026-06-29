@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Microsoft YaHei',Arial,sans-serif;
+            background:linear-gradient(135deg,#0b5e4a,#1a7a5a);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            min-height:100vh;
+            padding:20px
+        }
+        .register-box{
+            background:white;
+            padding:40px 35px;
+            border-radius:16px;
+            box-shadow:0 10px 40px rgba(0,0,0,0.3);
+            width:100%;
+            max-width:380px
+        }
+        .register-box h2{
+            text-align:center;
+            margin-bottom:8px;
+            color:#064e3b;
+            font-size:24px
+        }
+        .register-box .sub{
+            text-align:center;
+            color:#6b7280;
+            font-size:13px;
+            margin-bottom:25px
+        }
+        .register-box label{
+            display:block;
+            font-size:13px;
+            font-weight:600;
+            color:#374151;
+            margin-bottom:4px
+        }
+        .register-box input{
+            width:100%;
+            padding:10px 14px;
+            margin-bottom:16px;
+            border:1px solid #d1d5db;
+            border-radius:8px;
+            font-size:15px
+        }
+        .register-box input:focus{
+            border-color:#059669;
+            outline:none;
+            box-shadow:0 0 0 3px rgba(5,150,105,0.2)
+        }
+        .register-box .hint{
+            font-size:12px;
+            color:#9ca3af;
+            margin-top:-12px;
+            margin-bottom:12px;
+            display:block
+        }
+        .register-box button{
+            width:100%;
+            padding:12px;
+            background:linear-gradient(135deg,#059669,#10b981);
+            color:white;
+            border:none;
+            border-radius:8px;
+            font-size:17px;
+            font-weight:600;
+            cursor:pointer;
+            margin-top:6px
+        }
+        .register-box button:hover{opacity:0.9}
+        #msg{text-align:center;margin-top:14px;font-size:14px;min-height:22px}
+        #msg.success{color:#059669}
+        #msg.error{color:#dc2626}
+        .register-box .login-link{
+            text-align:center;
+            margin-top:16px;
+            font-size:14px;
+            color:#6b7280
+        }
+        .register-box .login-link a{
+            color:#059669;
+            text-decoration:none;
+            font-weight:600
+        }
+        .register-box .login-link a:hover{text-decoration:underline}
+    </style>
+</head>
+<body>
+<div class="register-box">
+    <h2>📝 注册账号</h2>
+    <p class="sub">注册后即可使用预测系统</p>
+
+    <label>用户名</label>
+    <input type="text" id="username" placeholder="4-12位字母或数字">
+    <span class="hint">* 4-12位，仅字母和数字</span>
+
+    <label>密码</label>
+    <input type="password" id="password" placeholder="至少6位">
+    <span class="hint">* 至少6位，建议字母+数字</span>
+
+    <label>确认密码</label>
+    <input type="password" id="password2" placeholder="再次输入密码">
+
+    <button onclick="register()">立即注册</button>
+    <div id="msg"></div>
+    <div class="login-link">
+        已有账号？ <a href="login.html">去登录</a>
+    </div>
+</div>
+
+<script>
+const API_BASE = 'https://lottery-login.vercel.app';
+
+async function register() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const password2 = document.getElementById('password2').value;
+    const msg = document.getElementById('msg');
+    msg.textContent = '';
+    msg.className = '';
+
+    if (!username || username.length < 4 || username.length > 12 || !/^[a-zA-Z0-9]+$/.test(username)) {
+        msg.textContent = '❌ 用户名需为4-12位字母或数字';
+        msg.className = 'error';
+        return;
+    }
+    if (!password || password.length < 6) {
+        msg.textContent = '❌ 密码至少6位';
+        msg.className = 'error';
+        return;
+    }
+    if (password !== password2) {
+        msg.textContent = '❌ 两次密码输入不一致';
+        msg.className = 'error';
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/api/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            msg.textContent = '✅ 注册成功！正在跳转登录...';
+            msg.className = 'success';
+            setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+        } else {
+            msg.textContent = '❌ ' + (data.error || '注册失败');
+            msg.className = 'error';
+        }
+    } catch (err) {
+        msg.textContent = '❌ 网络错误，请检查网络';
+        msg.className = 'error';
+    }
+}
+
+document.getElementById('password2').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') register();
+});
+</script>
+</body>
+</html>
