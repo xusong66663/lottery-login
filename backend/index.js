@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: ['http://localhost:5500', 'https://your-vercel-frontend.vercel.app'],
+  origin: ['http://localhost:5500', 'https://lottery-login.vercel.app', 'https://lottery-login-38xg.vercel.app'],
   credentials: true
 }));
 
