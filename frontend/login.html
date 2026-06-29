@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - 彩票预测</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .login-box {
+      background: white;
+      padding: 40px 35px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      width: 340px;
+    }
+    .login-box h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+      font-size: 24px;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border 0.3s;
+    }
+    .login-box input:focus {
+      border-color: #667eea;
+      outline: none;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: opacity 0.3s;
+    }
+    .login-box button:hover {
+      opacity: 0.9;
+    }
+    #msg {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
+      color: #ff4d4f;
+      min-height: 20px;
+    }
+    .tips {
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>🔐 登录</h2>
+    <input type="text" id="username" placeholder="请输入用户名" />
+    <input type="password" id="password" placeholder="请输入密码" />
+    <button onclick="login()">登录</button>
+    <div id="msg"></div>
+    <div class="tips">联系管理员获取账号</div>
+  </div>
+
+  <script>
+    // ⚠️ 重要：把下面这行改成你的 Render 后端域名（后续部署后修改）
+    const API_BASE = 'https://your-api.onrender.com';
+
+    async function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const msg = document.getElementById('msg');
+
+      if (!username || !password) {
+        msg.innerText = '请输入用户名和密码';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // 登录成功，跳转到主页面
+          window.location.href = 'index.html';
+        } else {
+          msg.innerText = data.error || '登录失败，请重试';
+        }
+      } catch (err) {
+        msg.innerText = '网络错误，请检查网络连接';
+      }
+    }
+
+    // 按回车键触发登录
+    document.getElementById('password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') login();
+    });
+    document.getElementById('username').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') login();
+    });
+  </script>
+</body>
+</html>
