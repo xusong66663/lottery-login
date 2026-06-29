@@ -18,7 +18,7 @@ app.use(cors({
 }));
 
 // ---------- 数据库连接 ----------
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect('mongodb+srv://wangyuan8298_db_user:yyqLMYEX2H1c8Fld@cluster0.wynlgs.mongodb.net/?appName=Cluster0')
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log('MongoDB连接失败:', err));
 
