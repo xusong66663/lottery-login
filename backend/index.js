@@ -160,4 +160,4 @@ app.post('/api/admin/toggle-status', adminAuth, async (req, res) => {
 });
 
 // ---------- 启动 ----------
-app.listen(PORT, () => console.log(`🚀 服务器运行在端口 ${PORT}`));
+module.exports = app;
